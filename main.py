@@ -1,5 +1,3 @@
-from idlelib import window
-
 from ursina import *
 from ursina.prefabs.color_picker import ColorPicker
 from ursina.hit_info import HitInfo
@@ -29,6 +27,13 @@ def ballmove():
     #print((ball.forward * 2)/(1.0/time.dt))
     #print(1.0/time.dt)
     #print(ball.forward)
+def time_end():
+    game_tracking.disable()
+    player.disable()
+    txt.disable()
+    result_score.enable()
+    result_score.parent = camera.ui
+    result_score.text = "Score: %s" % round(points)
 #---------------------------------------MAIN MENU------------------------------------------
 class MainMenu(Entity):
     def __init__(self, **kwargs):
@@ -60,6 +65,7 @@ def launch():
     camera.rotation = (0, 0, 0)
     global start_time
     start_time = time.time()
+    result_score.disable()
 def volumeChange():
     a.volume = volume.value
 #--------------------------------------OBJECTS (MAIN MENU)------------------------------------
@@ -72,7 +78,7 @@ txtSens = Text(text = "Sensitivity:", y = -0.188, x = -0.40, parent=menu)
 txtVol = Text(text = 'Music volume:', y = -0.26, x = -0.445, parent=menu)
 txtName = Text(text = 'Aim Trainer', y = 0.2, scale = 2.5, x = -0.17, parent=menu)
 colorPicker = ColorPicker(x = -0.55, y = 0.35, parent=menu)
-flTitle = Text(text = 'Aboba', x = 0.4, y = 0.12, origin = (0,0), parent=menu)
+flTitle = Text(text = 'Ursina!', x = 0.4, y = 0.12, origin = (0,0), parent=menu)
 crosscolor = Text(text='Crosshair color:', x = -0.8, y = 0.4, parent=menu)
 mode_menu = DropdownMenu("Mode", buttons=[DropdownMenuButton('Tracking', on_click=tracking)], y=-0.18, x=0.4, parent=menu)
 colorPicker.h_slider.value = int(crossh)
@@ -86,8 +92,9 @@ class Game_Tracking(Entity):
     pass
 game_tracking = Game_Tracking(enabled=False)
 #-----------------------------------VARIABLES (GAME TRACKING)--------------------------------
-countdown = 10
+countdown = 60
 points = 0
+game_ended = False
 h = int(float(crossh))
 r = float(crossr)
 g = float(crossg)
@@ -101,6 +108,7 @@ player = FirstPersonController(collider = 'box', enabled=False)
 txt = Text(text = "Points: %s" % points, position = window.top_left, parent=game_tracking)
 e = Entity(scale = 0.5, collider = 'box', parent=game_tracking)
 timer = Text(text="111111111", position = Vec2(-0.06, 0.5), parent=game_tracking)
+result_score = Text(text="0", x=0, y=0, origin=(0, 0), size=.05)
 #-----------------------------------PROPERTIES (GAME TRACKING)-----------------------------
 player.rotation_y = 90
 player.cursor.color = rgb(r, g, b)
@@ -113,6 +121,7 @@ current_timer = None
 #----------------------------------------MAINLOOP-------------------------------------
 def update():
     global current_timer
+    global game_ended
     if menu.enabled:
         global x
         y = (sin(x * 0.1)**2) + 1
@@ -134,6 +143,9 @@ def update():
         if current_timer != 0:
             current_timer = countdown - (math.floor(time.time() - start_time))
             timer.text = current_timer
+        elif game_ended == False:
+            time_end()
+            game_ended = True
         ballmove()
         if ball.intersects(e).hit:
             z = random.randint(-5, 5)
