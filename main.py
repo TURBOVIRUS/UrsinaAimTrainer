@@ -16,6 +16,20 @@ app = Ursina()
 def tracking():
     global selected_mode
     selected_mode = "tracking"
+def enable_game_tracking():
+    plane.enable()
+    ball.enable()
+    player.enable()
+    txt.enable()
+    e.enable()
+    timer.enable()
+def disable_game_tracking():
+    plane.disable()
+    ball.disable()
+    player.disable()
+    txt.disable()
+    e.disable()
+    timer.disable()
 #------------------------------------FUNCTIONS (GAME TRACKING)-----------------------------------
 def ballspin():
     ball.animate('rotation_y', ball.rotation_y+360, duration=2,
@@ -28,9 +42,7 @@ def ballmove():
     #print(1.0/time.dt)
     #print(ball.forward)
 def time_end():
-    game_tracking.disable()
-    player.disable()
-    txt.disable()
+    disable_game_tracking()
     result_score.enable()
     result_score.parent = camera.ui
     result_score.text = "Score: %s" % round(points)
@@ -54,12 +66,11 @@ def launch():
     i.write("\n")
     i.write("selected_mode = '%s'" % selected_mode)
     i.close()
+    menu.disable()
     if selected_mode == "tracking":
-        game_tracking.enable()
+        enable_game_tracking()
         txt.parent = camera.ui
         timer.parent = camera.ui
-    menu.disable()
-    player.enable()
     camera.parent = player.camera_pivot
     camera.position = (0, 0, 0)
     camera.rotation = (0, 0, 0)
@@ -86,11 +97,6 @@ colorPicker.s_slider.value = 100
 colorPicker.v_slider.value = 100
 x = 1
 #--------------------------------------GAME (TRACKING)----------------------------------------
-class Game_Tracking(Entity):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-    pass
-game_tracking = Game_Tracking(enabled=False)
 #-----------------------------------VARIABLES (GAME TRACKING)--------------------------------
 countdown = 60
 points = 0
@@ -102,12 +108,13 @@ b = float(crossb)
 ss = float(sens)
 #-------------------------------OBJECTS (GAME TRACKING)-------------------------------
 plane = Entity(model='plane', scale=100, color=color.green,
-       collider='box', texture = 'grass', shader = lit_with_shadows_shader, parent=game_tracking)
-ball = Entity(model='sphere', color = color.black, shader = lit_with_shadows_shader, position = Vec3(5, 1, 0), collider = 'sphere', parent=game_tracking)
+       collider='box', texture = 'grass', shader = lit_with_shadows_shader)
+ball = Entity(model='sphere', color = color.black, shader = lit_with_shadows_shader, position = Vec3(5, 1, 0), collider = 'sphere')
 player = FirstPersonController(collider = 'box', enabled=False)
-txt = Text(text = "Points: %s" % points, position = window.top_left, parent=game_tracking)
-e = Entity(scale = 0.5, collider = 'box', parent=game_tracking)
-timer = Text(text="111111111", position = Vec2(-0.06, 0.5), parent=game_tracking)
+txt = Text(text = "Points: %s" % points, position = window.top_left)
+e = Entity(scale = 0.5, collider = 'box')
+timer = Text(text="111111111", position = Vec2(-0.06, 0.5))
+
 result_score = Text(text="0", x=0, y=0, origin=(0, 0), size=.05)
 #-----------------------------------PROPERTIES (GAME TRACKING)-----------------------------
 player.rotation_y = 90
@@ -116,7 +123,7 @@ player.mouse_sensitivity = Vec2(ss, ss)
 z = random.randint(-5, 5)
 y = random.randint(1, 5)
 e.position = Vec3(5, y, z)
-game_tracking.disable()
+disable_game_tracking()
 current_timer = None
 #----------------------------------------MAINLOOP-------------------------------------
 def update():
